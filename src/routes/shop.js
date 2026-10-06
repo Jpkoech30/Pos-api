@@ -4,6 +4,7 @@ import { shapeShop } from '../serializers/shop.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
+import { MAX_VAT_RATE } from '../config/constants.js';
 import { testCredentials } from '../services/daraja.js';
 
 const router = express.Router();
@@ -26,7 +27,6 @@ router.patch(
   }),
 );
 
-// Tax configuration — owner only
 router.put(
   '/tax',
   requireAuth,
@@ -38,8 +38,8 @@ router.put(
       return res.status(400).json({ message: 'vatRegistered must be a boolean' });
     }
     const rate = Number(vatRate);
-    if (!Number.isFinite(rate) || rate < 0 || rate > 50) {
-      return res.status(400).json({ message: 'vatRate must be between 0 and 50' });
+    if (!Number.isFinite(rate) || rate < 0 || rate > MAX_VAT_RATE) {
+      return res.status(400).json({ message: `vatRate must be between 0 and ${MAX_VAT_RATE}` });
     }
 
     const shop = await shopDb.setTaxConfig(req.user.shopId, {

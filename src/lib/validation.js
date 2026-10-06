@@ -1,7 +1,10 @@
 import { cleanGtin, isValidGtin } from '../utils/gtin.js';
+import { PIN_LENGTH } from '../config/constants.js';
+
+const PIN_REGEX = new RegExp('^\\d{' + PIN_LENGTH + '}$');
 
 export function isValidPin(pin) {
-  return typeof pin === 'string' && /^\d{4}$/.test(pin);
+  return typeof pin === 'string' && PIN_REGEX.test(pin);
 }
 
 // Returns null if the barcode is acceptable, or an error message.

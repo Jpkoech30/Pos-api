@@ -10,13 +10,14 @@ import shopRoutes from './src/routes/shop.js';
 import staffRoutes from './src/routes/staff.js';
 import catalogRoutes from './src/routes/catalog.js';
 import stockRoutes from './src/routes/stock.js';
+import taxRoutes from './src/routes/tax.js';
+import shiftsRoutes from './src/routes/shifts.js';
 import { runMigrations } from './src/db/migrate.js';
 import { seedProducts } from './src/db/seed.js';
 import { seedCatalog } from './src/db/catalogSeed.js';
 import { orderDb } from './src/db/orders.js';
-import taxRoutes from './src/routes/tax.js';
-// Add to the imports near the top:
-import shiftsRoutes from './src/routes/shifts.js';
+import { STK_SWEEP_INTERVAL_MS, STK_TIMEOUT_MINUTES } from './src/config/constants.js';
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -38,8 +39,8 @@ app.use('/staff', staffRoutes);
 app.use('/catalog', catalogRoutes);
 app.use('/stock', stockRoutes);
 app.use('/tax', taxRoutes);
-// Add to the route mounts, anywhere among them:
 app.use('/shifts', shiftsRoutes);
+
 app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(500).json({ message: err.message || 'Server error' });
@@ -48,8 +49,8 @@ app.use((err, _req, res, _next) => {
 const PORT = process.env.PORT || 4000;
 
 function startStalePendingSweeper() {
-  const INTERVAL_MS = 60_000;
-  const TIMEOUT_MINUTES = 2;
+  const INTERVAL_MS = STK_SWEEP_INTERVAL_MS;
+  const TIMEOUT_MINUTES = STK_TIMEOUT_MINUTES;
 
   setInterval(async () => {
     try {
@@ -62,7 +63,7 @@ function startStalePendingSweeper() {
     }
   }, INTERVAL_MS);
 
-  console.log('✅ Stale pending sweeper running (60s interval, 2min timeout)');
+  console.log('✅ Stale pending sweeper running');
 }
 
 async function start() {

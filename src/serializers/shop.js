@@ -1,3 +1,5 @@
+import { DEFAULT_VAT_RATE } from '../config/constants.js';
+
 export function shapeShop(row) {
   if (!row) return null;
   return {
@@ -15,7 +17,7 @@ export function shapeShop(row) {
       row.daraja_shortcode,
     ),
     vatRegistered: row.vat_registered === true,
-    vatRate: row.vat_rate != null ? Number(row.vat_rate) : 16,
+    vatRate: row.vat_rate != null ? Number(row.vat_rate) : DEFAULT_VAT_RATE,
     pricesIncludeVat: row.prices_include_vat !== false,
     createdAt: row.created_at,
   };

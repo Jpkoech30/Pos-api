@@ -3,17 +3,15 @@ import { query } from '../db/pool.js';
 import { shopDb } from '../db/shops.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
+import { DEFAULT_VAT_RATE, TOT_RATE } from '../config/constants.js';
 
 const router = express.Router();
 
-// GET /tax/summary?from=YYYY-MM-DD&to=YYYY-MM-DD
-// Returns VAT collected (if registered) and TOT estimate (if not) for a period.
 router.get('/summary', requireAuth, asyncHandler(async (req, res) => {
   const shop = await shopDb.findById(req.user.shopId);
   const vatRegistered = shop?.vat_registered === true;
-  const vatRate = Number(shop?.vat_rate ?? 16);
+  const vatRate = Number(shop?.vat_rate ?? DEFAULT_VAT_RATE);
 
-  // Default: this calendar month
   const now = new Date();
   const from = req.query.from || new Date(now.getFullYear(), now.getMonth(), 1)
     .toISOString().slice(0, 10);
@@ -39,8 +37,7 @@ router.get('/summary', requireAuth, asyncHandler(async (req, res) => {
   const grossSales = Number(s.gross_sales) || 0;
   const orderCount = Number(s.order_count) || 0;
 
-  // Turnover Tax: 1.5% of gross, only for non-VAT-registered businesses
-  const totRate = 1.5;
+  const totRate = TOT_RATE;
   const totLiability = !vatRegistered ? +(grossSales * totRate / 100).toFixed(2) : 0;
 
   res.json({

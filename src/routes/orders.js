@@ -3,6 +3,7 @@ import { orderDb } from '../db/orders.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
 import { createOrder } from '../services/orders.js';
+import { PAYMENT_METHODS } from '../config/constants.js';
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.post('/', requireAuth, asyncHandler(async (req, res) => {
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ message: 'Order must have at least one item' });
   }
-  if (!['cash', 'card', 'mpesa', 'mpesa_stk'].includes(paymentMethod)) {
+  if (!PAYMENT_METHODS.includes(paymentMethod)) {
     return res.status(400).json({ message: 'Invalid payment method' });
   }
   for (const item of items) {

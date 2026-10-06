@@ -2,6 +2,7 @@
 import { pool, query } from './pool.js';
 import { logStockMovement } from './products.js';
 import { shapeOrder } from '../serializers/order.js';
+import { STK_TIMEOUT_MINUTES } from '../config/constants.js';
 
 export const orderDb = {
   async create({
@@ -233,7 +234,7 @@ export const orderDb = {
     return shapeOrder(rows[0], items);
   },
 
-  async expireStalePending(timeoutMinutes = 2) {
+  async expireStalePending(timeoutMinutes = STK_TIMEOUT_MINUTES) {
     const { rowCount } = await query(
       `UPDATE orders
        SET payment_status = 'failed',

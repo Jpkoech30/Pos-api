@@ -5,24 +5,10 @@ import { requireRole } from '../middleware/requireRole.js';
 import { cleanGtin } from '../utils/gtin.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
 import { validateBarcode } from '../lib/validation.js';
+import { shapeProduct } from '../serializers/product.js';
+import { STOCK_ADJUST_REASONS } from '../config/constants.js';
 
 const router = express.Router();
-
-function shapeProduct(row) {
-  return {
-    id: String(row.id),
-    name: row.name,
-    price: Number(row.price),
-    costPrice: row.cost_price != null ? Number(row.cost_price) : null,
-    category: row.category,
-    supplier: row.supplier ?? null,
-    manufacturer: row.manufacturer ?? null,
-    sku: row.sku,
-    barcode: row.barcode,
-    stock: row.stock,
-    barcodeCount: row.barcode_count != null ? Number(row.barcode_count) : undefined,
-  };
-}
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
   const rows = await productDb.list(req.user.shopId);
@@ -138,10 +124,9 @@ router.post(
     if (!Number.isInteger(change) || change === 0) {
       return res.status(400).json({ message: 'change must be a non-zero integer' });
     }
-    const allowedReasons = ['restock', 'correction', 'damage', 'return'];
-    if (!allowedReasons.includes(reason)) {
+    if (!STOCK_ADJUST_REASONS.includes(reason)) {
       return res.status(400).json({
-        message: `reason must be one of: ${allowedReasons.join(', ')}`,
+        message: `reason must be one of: ${STOCK_ADJUST_REASONS.join(', ')}`,
       });
     }
 

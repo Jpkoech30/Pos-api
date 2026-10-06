@@ -8,6 +8,7 @@ import { shapeUser } from '../serializers/user.js';
 import { shapeShop } from '../serializers/shop.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
+import { JWT_EXPIRES_IN } from '../config/constants.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
@@ -16,11 +17,10 @@ function issueToken(user) {
   return jwt.sign(
     { sub: String(user.id), role: user.role, shopId: user.shop_id },
     JWT_SECRET,
-    { expiresIn: '30d' },
+    { expiresIn: JWT_EXPIRES_IN },
   );
 }
 
-// POST /auth/signup — creates a shop and its owner
 router.post('/signup', asyncHandler(async (req, res) => {
   const { email, password, name, shopName } = req.body;
   if (!email || !password || !name) {
