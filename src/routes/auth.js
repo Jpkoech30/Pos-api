@@ -5,12 +5,10 @@ import { pool } from '../db/pool.js';
 import { userDb, shapeUser } from '../db/users.js';
 import { shopDb, shapeShop } from '../db/shops.js';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
 
 function issueToken(user) {
   return jwt.sign(

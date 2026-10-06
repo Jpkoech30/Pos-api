@@ -3,12 +3,10 @@ import { orderDb } from '../db/orders.js';
 import { shopDb, getDarajaCredentials } from '../db/shops.js';
 import { shiftDb } from '../db/shifts.js';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
 import { initiateStkPush, queryStkPush } from '../services/daraja.js';
 
 const router = express.Router();
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
 
 function callbackUrl() {
   const base = process.env.PUBLIC_BASE_URL;

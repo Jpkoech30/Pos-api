@@ -2,12 +2,10 @@ import express from 'express';
 import { shopDb, shapeShop } from '../db/shops.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
 import { testCredentials } from '../services/daraja.js';
 
 const router = express.Router();
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
   const shop = await shopDb.findById(req.user.shopId);

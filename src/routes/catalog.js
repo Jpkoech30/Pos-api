@@ -1,11 +1,9 @@
 import express from 'express';
 import { query } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
 
 const router = express.Router();
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
 
 router.get('/search', requireAuth, asyncHandler(async (req, res) => {
   const q = String(req.query.q || '').trim().toLowerCase();

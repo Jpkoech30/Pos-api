@@ -2,12 +2,9 @@ import express from 'express';
 import { query } from '../db/pool.js';
 import { shopDb } from '../db/shops.js';
 import { requireAuth } from '../middleware/auth.js';
-import { requireRole } from '../middleware/requireRole.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
 
 const router = express.Router();
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
 
 // GET /tax/summary?from=YYYY-MM-DD&to=YYYY-MM-DD
 // Returns VAT collected (if registered) and TOT estimate (if not) for a period.

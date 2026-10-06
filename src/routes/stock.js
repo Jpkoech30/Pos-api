@@ -1,13 +1,9 @@
-
-
 import express from 'express';
 import { productDb } from '../db/products.js';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
 
 const router = express.Router();
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
 
 // GET /stock/activity — recent movements across all products
 router.get('/activity', requireAuth, asyncHandler(async (req, res) => {

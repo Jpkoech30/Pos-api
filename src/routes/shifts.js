@@ -1,26 +1,10 @@
 import express from 'express';
 import { shiftDb, shapeShift } from '../db/shifts.js';
-import { userDb } from '../db/users.js';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
+import { resolveStaffId } from '../lib/resolveStaffId.js';
 
 const router = express.Router();
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
-
-// Resolve the staff id: if the client sends one, validate it belongs to
-// the caller's shop and is active; otherwise use the logged-in user.
-async function resolveStaffId(req, providedStaffId) {
-  if (!providedStaffId) return req.user.id;
-  try {
-    const staff = await userDb.findById(providedStaffId);
-    if (staff && staff.is_active && String(staff.shop_id) === String(req.user.shopId)) {
-      return staff.id;
-    }
-  } catch (err) {
-    console.warn('Staff id validation failed:', err.message);
-  }
-  return req.user.id;
-}
 
 router.get('/current', requireAuth, asyncHandler(async (req, res) => {
   const row = await shiftDb.findCurrent(req.user.shopId);

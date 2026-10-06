@@ -3,15 +3,10 @@ import bcrypt from 'bcryptjs';
 import { userDb, shapeUser } from '../db/users.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
+import { isValidPin } from '../lib/validation.js';
 
 const router = express.Router();
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
-
-function isValidPin(pin) {
-  return typeof pin === 'string' && /^\d{4}$/.test(pin);
-}
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
   const rows = await userDb.listByShop(req.user.shopId);

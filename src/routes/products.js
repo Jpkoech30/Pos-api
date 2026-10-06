@@ -2,12 +2,11 @@ import express from 'express';
 import { productDb } from '../db/products.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
-import { isValidGtin, cleanGtin } from '../utils/gtin.js';
+import { cleanGtin } from '../utils/gtin.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
+import { validateBarcode } from '../lib/validation.js';
 
 const router = express.Router();
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
 
 function shapeProduct(row) {
   return {
@@ -23,17 +22,6 @@ function shapeProduct(row) {
     stock: row.stock,
     barcodeCount: row.barcode_count != null ? Number(row.barcode_count) : undefined,
   };
-}
-
-function validateBarcode(barcode) {
-  if (barcode == null) return null;
-  const digits = cleanGtin(barcode);
-  if (digits.length === 0) return null;
-  if (digits.length < 4) return 'Barcode must be at least 4 digits';
-  if ([8, 12, 13, 14].includes(digits.length) && !isValidGtin(digits)) {
-    return 'Barcode check digit is invalid';
-  }
-  return null;
 }
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {

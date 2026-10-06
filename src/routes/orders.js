@@ -1,27 +1,12 @@
 import express from 'express';
 import { orderDb } from '../db/orders.js';
-import { userDb } from '../db/users.js';
 import { shopDb } from '../db/shops.js';
 import { shiftDb } from '../db/shifts.js';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../lib/asyncHandler.js';
+import { resolveStaffId } from '../lib/resolveStaffId.js';
 
 const router = express.Router();
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
-
-async function resolveStaffId(req, providedStaffId) {
-  if (!providedStaffId) return req.user.id;
-  try {
-    const staff = await userDb.findById(providedStaffId);
-    if (staff && staff.is_active && String(staff.shop_id) === String(req.user.shopId)) {
-      return staff.id;
-    }
-  } catch (err) {
-    console.warn('Staff id validation failed:', err.message);
-  }
-  return req.user.id;
-}
 
 router.post('/', requireAuth, asyncHandler(async (req, res) => {
   const {
