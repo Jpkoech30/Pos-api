@@ -1,10 +1,8 @@
 import express from 'express';
 import { orderDb } from '../db/orders.js';
-import { shopDb } from '../db/shops.js';
-import { shiftDb } from '../db/shifts.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
-import { resolveStaffId } from '../lib/resolveStaffId.js';
+import { createOrder } from '../services/orders.js';
 
 const router = express.Router();
 
@@ -28,24 +26,10 @@ router.post('/', requireAuth, asyncHandler(async (req, res) => {
     }
   }
 
-  const shop = await shopDb.findById(req.user.shopId);
-  const vatRegistered = shop?.vat_registered === true;
-  const vatRate = vatRegistered ? Number(shop.vat_rate) : 0;
-  const taxInclusive = shop?.prices_include_vat !== false;
-
-  const staffId = await resolveStaffId(req, providedStaffId);
-
-  const currentShift = await shiftDb.findCurrent(req.user.shopId);
-  const shiftId = currentShift ? currentShift.id : null;
-
-  const order = await orderDb.create({
-    shopId: req.user.shopId,
-    staffId,
-    shiftId,
+  const order = await createOrder(req, {
     items,
     paymentMethod,
-    vatRate,
-    taxInclusive,
+    providedStaffId,
     amountTendered,
     changeGiven,
     mpesaPhone,

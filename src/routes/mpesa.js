@@ -1,9 +1,9 @@
 import express from 'express';
 import { orderDb } from '../db/orders.js';
 import { shopDb, getDarajaCredentials } from '../db/shops.js';
-import { shiftDb } from '../db/shifts.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
+import { createOrder } from '../services/orders.js';
 import { initiateStkPush, queryStkPush } from '../services/daraja.js';
 
 const router = express.Router();
@@ -16,7 +16,7 @@ function callbackUrl() {
 
 // POST /mpesa/stkpush — initiate a payment
 router.post('/stkpush', requireAuth, asyncHandler(async (req, res) => {
-  const { phone, items, idempotencyKey } = req.body;
+  const { phone, items, idempotencyKey, staffId: providedStaffId } = req.body;
 
   if (!phone || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ message: 'phone and items are required' });
@@ -30,21 +30,10 @@ router.post('/stkpush', requireAuth, asyncHandler(async (req, res) => {
     });
   }
 
-  const vatRegistered = shop?.vat_registered === true;
-  const vatRate = vatRegistered ? Number(shop.vat_rate) : 0;
-  const taxInclusive = shop?.prices_include_vat !== false;
-
-  const currentShift = await shiftDb.findCurrent(req.user.shopId);
-  const shiftId = currentShift ? currentShift.id : null;
-
-  const order = await orderDb.create({
-    shopId: req.user.shopId,
-    staffId: req.user.id,
-    shiftId,
+  const order = await createOrder(req, {
     items,
     paymentMethod: 'mpesa_stk',
-    vatRate,
-    taxInclusive,
+    providedStaffId,
     paymentStatus: 'pending',
     mpesaPhone: phone,
     idempotencyKey,
