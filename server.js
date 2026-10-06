@@ -13,8 +13,8 @@ import stockRoutes from './src/routes/stock.js';
 import taxRoutes from './src/routes/tax.js';
 import shiftsRoutes from './src/routes/shifts.js';
 import { runMigrations } from './src/db/migrate.js';
-import { seedProducts } from './src/db/seed.js';
-import { seedCatalog } from './src/db/catalogSeed.js';
+import { seedProducts } from './src/db/seeds/products.js';
+import { seedCatalog } from './src/db/seeds/catalog.js';
 import { orderDb } from './src/db/orders.js';
 import { STK_SWEEP_INTERVAL_MS, STK_TIMEOUT_MINUTES } from './src/config/constants.js';
 

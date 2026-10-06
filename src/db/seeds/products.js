@@ -1,4 +1,4 @@
-import { query } from './pool.js';
+import { query } from '../pool.js';
 
 const PRODUCTS = [
   { name: 'Espresso',         price: 2.50, costPrice: 0.80, category: 'Coffee',   sku: 'COF-001', barcode: '1111111111111', stock: 999 },
