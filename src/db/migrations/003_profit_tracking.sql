@@ -10,4 +10,4 @@
 --   updates a buying price. The snapshot locks in the number.
 
 ALTER TABLE products    ADD COLUMN IF NOT EXISTS cost_price NUMERIC(10,2);
-ALTER TABLE order_items ADD COLUMN IF NOT EXISTS cost_price NUMERIC(10,2);
+ALTER TABLE order_items ADD COLUMN IF NOT EXISTS cost_price NUMERIC(10,2);s
