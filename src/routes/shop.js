@@ -1,5 +1,6 @@
 import express from 'express';
-import { shopDb, shapeShop } from '../db/shops.js';
+import { shopDb } from '../db/shops.js';
+import { shapeShop } from '../serializers/shop.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { asyncHandler } from '../lib/asyncHandler.js';

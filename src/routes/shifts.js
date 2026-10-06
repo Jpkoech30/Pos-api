@@ -1,5 +1,6 @@
 import express from 'express';
-import { shiftDb, shapeShift } from '../db/shifts.js';
+import { shiftDb } from '../db/shifts.js';
+import { shapeShift } from '../serializers/shift.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
 import { resolveStaffId } from '../lib/resolveStaffId.js';

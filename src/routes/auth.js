@@ -2,8 +2,10 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../db/pool.js';
-import { userDb, shapeUser } from '../db/users.js';
-import { shopDb, shapeShop } from '../db/shops.js';
+import { userDb } from '../db/users.js';
+import { shopDb } from '../db/shops.js';
+import { shapeUser } from '../serializers/user.js';
+import { shapeShop } from '../serializers/shop.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
 

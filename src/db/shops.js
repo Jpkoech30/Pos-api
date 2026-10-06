@@ -45,7 +45,6 @@ export const shopDb = {
     return rows[0] || null;
   },
 
-  // Dedicated tax update so the settings screen has one clean call
   async setTaxConfig(id, { vatRegistered, vatRate, pricesIncludeVat }) {
     const { rows } = await query(
       `UPDATE shops
@@ -105,30 +104,6 @@ export const shopDb = {
     return rows[0] || null;
   },
 };
-
-export function shapeShop(row) {
-  if (!row) return null;
-  return {
-    id: String(row.id),
-    name: row.name,
-    mpesaNumber: row.mpesa_number ?? null,
-    address: row.address ?? null,
-    stkEnabled: row.stk_enabled === true,
-    darajaShortcode: row.daraja_shortcode ?? null,
-    darajaEnv: row.daraja_env ?? 'sandbox',
-    hasCredentials: Boolean(
-      row.daraja_consumer_key &&
-      row.daraja_consumer_secret &&
-      row.daraja_passkey &&
-      row.daraja_shortcode,
-    ),
-    // Tax
-    vatRegistered: row.vat_registered === true,
-    vatRate: row.vat_rate != null ? Number(row.vat_rate) : 16,
-    pricesIncludeVat: row.prices_include_vat !== false,
-    createdAt: row.created_at,
-  };
-}
 
 export function getDarajaCredentials(row) {
   if (!row) return null;

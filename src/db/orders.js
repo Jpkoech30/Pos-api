@@ -1,5 +1,7 @@
+
 import { pool, query } from './pool.js';
 import { logStockMovement } from './products.js';
+import { shapeOrder } from '../serializers/order.js';
 
 export const orderDb = {
   async create({
@@ -20,9 +22,6 @@ export const orderDb = {
     try {
       await client.query('BEGIN');
 
-      // Idempotency: if this exact key was already used by this shop,
-      // return the existing order instead of creating a duplicate.
-      // This is what makes a retry after a timeout safe.
       if (idempotencyKey) {
         const { rows: existing } = await client.query(
           'SELECT * FROM orders WHERE shop_id = $1 AND idempotency_key = $2',
@@ -40,20 +39,6 @@ export const orderDb = {
 
       const grossSubtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-      // Two pricing modes:
-      //
-      // taxInclusive (default in Kenya): the price the customer sees
-      // already includes VAT. We back the VAT out of the total.
-      //   vat = total × rate / (100 + rate)
-      //   net = total − vat
-      //
-      // taxExclusive: prices are pre-tax, VAT is added on top.
-      //   net = subtotal
-      //   vat = net × rate / 100
-      //   total = net + vat
-      //
-      // Non-VAT shops have vatRate = 0, so both paths collapse to
-      // net = grossSubtotal, vat = 0, total = grossSubtotal.
       let netSubtotal, vatAmount, total;
       if (taxInclusive && vatRate > 0) {
         total = +grossSubtotal.toFixed(2);
@@ -126,8 +111,6 @@ export const orderDb = {
     } catch (err) {
       await client.query('ROLLBACK');
 
-      // Race condition: a concurrent request with the same key inserted
-      // first and won the unique index. Return that order.
       if (err.code === '23505' && idempotencyKey) {
         const { rows } = await client.query(
           'SELECT * FROM orders WHERE shop_id = $1 AND idempotency_key = $2',
@@ -264,53 +247,3 @@ export const orderDb = {
     return rowCount;
   },
 };
-
-function shapeOrder(row, items) {
-  const shapedItems = items.map((i) => ({
-    productId: String(i.product_id),
-    name: i.name,
-    price: Number(i.price),
-    costPrice: i.cost_price != null ? Number(i.cost_price) : null,
-    quantity: i.quantity,
-  }));
-
-  const allHaveCost =
-    shapedItems.length > 0 && shapedItems.every((i) => i.costPrice != null);
-  let totalCost = null;
-  let grossProfit = null;
-
-  if (allHaveCost) {
-    totalCost = +shapedItems
-      .reduce((s, i) => s + i.costPrice * i.quantity, 0)
-      .toFixed(2);
-    grossProfit = +(Number(row.subtotal) - totalCost).toFixed(2);
-  }
-
-  return {
-    id: String(row.id),
-    shopId: row.shop_id != null ? String(row.shop_id) : null,
-    shiftId: row.shift_id != null ? String(row.shift_id) : null,
-    staffId: row.staff_id,
-    staffName: row.staff_name ?? null,
-    items: shapedItems,
-    subtotal: Number(row.subtotal),
-    tax: Number(row.tax),
-    total: Number(row.total),
-    vatRate: row.vat_rate != null ? Number(row.vat_rate) : 0,
-    vatAmount:
-      row.vat_amount != null ? Number(row.vat_amount) : Number(row.tax ?? 0),
-    taxInclusive: row.tax_inclusive !== false,
-    totalCost,
-    grossProfit,
-    paymentMethod: row.payment_method,
-    amountTendered:
-      row.amount_tendered != null ? Number(row.amount_tendered) : null,
-    changeGiven: row.change_given != null ? Number(row.change_given) : null,
-    mpesaPhone: row.mpesa_phone ?? null,
-    paymentStatus: row.payment_status || 'completed',
-    mpesaReceiptNumber: row.mpesa_receipt_number ?? null,
-    mpesaResultCode: row.mpesa_result_code ?? null,
-    mpesaResultDesc: row.mpesa_result_desc ?? null,
-    createdAt: row.created_at,
-  };
-}
